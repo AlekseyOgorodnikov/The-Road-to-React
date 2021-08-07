@@ -21,13 +21,19 @@ const App = () => {
     },
   ];
 
-  const [searchTerm, setSearchTerm] = useState(
-    localStorage.getItem('search') || 'R'
-  );
+  const usePersistentState = (key, initialState) => {
+    const [value, setValue] = useState(
+      localStorage.getItem(key) || initialState
+    );
 
-  useEffect(() => {
-    localStorage.getItem('search', searchTerm);
-  }, [searchTerm]);
+    useEffect(() => {
+      localStorage.setItem(key, value);
+    }, [value, key]);
+
+    return [value, setValue];
+  };
+
+  const [searchTerm, setSearchTerm] = usePersistentState('search', 'Re');
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);

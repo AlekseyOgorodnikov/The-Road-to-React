@@ -1,5 +1,5 @@
 import './App.css';
-import { React, useState, useEffect } from 'react';
+import { React, useState, useEffect, useRef } from 'react';
 
 const App = () => {
   const stories = [
@@ -49,8 +49,8 @@ const App = () => {
 
       <InputWithLable
         id="search"
-        label="Search: "
         type="text"
+        isFocused
         value={searchTerm}
         onInputChange={handleSearch}
       >
@@ -63,12 +63,32 @@ const App = () => {
   );
 };
 
-const InputWithLable = ({ id, children, type, value, onInputChange }) => {
+const InputWithLable = ({
+  id,
+  children,
+  type,
+  isFocused,
+  value,
+  onInputChange,
+}) => {
+  const inputRef = useRef();
+
+  useEffect(() => {
+    if (isFocused && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isFocused]);
   return (
     <>
       <label htmlFor={id}>{children}</label>
-      <input id={id} type={type} value={value} onChange={onInputChange} />
-
+      &nbsp;
+      <input
+        ref={inputRef}
+        id={id}
+        type={type}
+        value={value}
+        onChange={onInputChange}
+      />
       <p>
         Search for <strong>{value}</strong>
       </p>

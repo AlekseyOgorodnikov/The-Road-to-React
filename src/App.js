@@ -1,5 +1,12 @@
 import './App.css';
-import { React, useState, useEffect, useRef, useReducer } from 'react';
+import {
+  React,
+  useState,
+  useEffect,
+  useRef,
+  useReducer,
+  useCallback,
+} from 'react';
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
@@ -56,7 +63,7 @@ const App = () => {
 
   const [searchTerm, setSearchTerm] = usePersistentState('search', 'Re');
 
-  useEffect(() => {
+  const handleFetchStories = useCallback(() => {
     if (!searchTerm) return;
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
     fetch(`${API_ENDPOINT}${searchTerm}`)
@@ -69,6 +76,10 @@ const App = () => {
       })
       .catch(() => dispatchStories({ type: 'STORIES_FETCH_FAILURE' }));
   }, [searchTerm]);
+
+  useEffect(() => {
+    handleFetchStories();
+  }, [handleFetchStories]);
 
   // render input value
   const handleSearch = (event) => {

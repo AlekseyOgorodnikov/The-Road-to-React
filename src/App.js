@@ -63,10 +63,12 @@ const App = () => {
 
   const [searchTerm, setSearchTerm] = usePersistentState('search', 'Re');
 
+  const [url, setUrl] = useState(`${API_ENDPOINT}${searchTerm}`);
+
   const handleFetchStories = useCallback(() => {
-    if (!searchTerm) return;
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
-    fetch(`${API_ENDPOINT}${searchTerm}`)
+
+    fetch(url)
       .then((response) => response.json())
       .then((result) => {
         dispatchStories({
@@ -75,15 +77,19 @@ const App = () => {
         });
       })
       .catch(() => dispatchStories({ type: 'STORIES_FETCH_FAILURE' }));
-  }, [searchTerm]);
+  }, [url]);
 
   useEffect(() => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  // render input value
-  const handleSearch = (event) => {
+  // input value
+  const handleSearchInput = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleSearchSubmit = () => {
+    setUrl(`${API_ENDPOINT}${searchTerm}`);
   };
 
   // remove card
@@ -103,10 +109,13 @@ const App = () => {
         type="text"
         isFocused
         value={searchTerm}
-        onInputChange={handleSearch}
+        onInputChange={handleSearchInput}
       >
         <strong>Search: </strong>
       </InputWithLable>
+      <button type="button" disabled={!searchTerm} onClick={handleSearchSubmit}>
+        Submit
+      </button>
       <br />
       <hr />
 

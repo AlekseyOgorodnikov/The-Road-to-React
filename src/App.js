@@ -1,5 +1,5 @@
 import './App.css';
-import { React, useState, useEffect, useRef } from 'react';
+import { React, useState, useEffect, useRef, useReducer } from 'react';
 
 const initialStories = [
   {
@@ -30,31 +30,61 @@ const usePersistentState = (key, initialState) => {
   return [value, setValue];
 };
 
+const storiesReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_STORIES':
+      return action.payload;
+    case 'REMOVE_STORY':
+      return state.filter(
+        (story) => action.payload.objectID !== story.objectID
+      );
+
+    default:
+      throw new Error();
+  }
+};
+
 const App = () => {
+  const [stories, dispatchStories] = useReducer(storiesReducer, []);
+
   const getAsyncStories = () =>
     new Promise((resolve) =>
       setTimeout(() => resolve({ data: { stories: initialStories } }), 2000)
     );
 
-  const [stories, setStories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
-    getAsyncStories().then((result) => {
-      setStories(result.data.stories);
-    });
+    setIsLoading(true);
+    getAsyncStories()
+      .then((result) => {
+        dispatchStories({
+          type: 'SET_STORIES',
+          payload: result.data.stories,
+        });
+        setIsLoading(false);
+      })
+      .catch(() => setIsError(true));
   }, []);
 
   const [searchTerm, setSearchTerm] = usePersistentState('search', 'Re');
 
+  // render input value
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
+  // remove card
   const handleRemoveStory = (item) => {
-    const newStories = stories.filter(
-      (story) => item.objectID !== story.objectID
-    );
-    setStories(newStories);
+    // const newStories = stories.filter(
+    //   (story) => item.objectID !== story.objectID
+    // );
+    dispatchStories({
+      type: 'REMOVE_STORY',
+      payload: item,
+    });
   };
 
   const searchedStories = stories.filter((story) =>
@@ -76,7 +106,17 @@ const App = () => {
       </InputWithLable>
       <br />
       <hr />
-      <List list={searchedStories} onRemoveItem={handleRemoveStory} />
+
+      {isError && <p>Something went wrong...</p>}
+
+      {isLoading ? (
+        <>
+          <br />
+          <p>Loading...</p>
+        </>
+      ) : (
+        <List list={searchedStories} onRemoveItem={handleRemoveStory} />
+      )}
     </div>
   );
 };

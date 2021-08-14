@@ -55,6 +55,25 @@ const storiesReducer = (state, action) => {
   }
 };
 
+const SearchForm = ({ searchTerm, onSearchInput, onSeachSubmit }) => (
+  <form onSubmit={onSeachSubmit}>
+    <InputWithLable
+      id="search"
+      type="text"
+      isFocused
+      value={searchTerm}
+      onInputChange={onSearchInput}
+    >
+      <strong>Search: </strong>
+    </InputWithLable>
+    <button type="submit" disabled={!searchTerm}>
+      Submit
+    </button>
+    <br />
+    <br />
+  </form>
+);
+
 const App = () => {
   const [stories, dispatchStories] = useReducer(storiesReducer, {
     data: [],
@@ -90,8 +109,9 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSearchSubmit = () => {
+  const handleSearchSubmit = (event) => {
     setUrl(`${API_ENDPOINT}${searchTerm}`);
+    event.preventDefault();
   };
 
   // remove card
@@ -106,19 +126,12 @@ const App = () => {
     <div className="App">
       <h1>My Hacker Stories</h1>
 
-      <InputWithLable
-        id="search"
-        type="text"
-        isFocused
-        value={searchTerm}
-        onInputChange={handleSearchInput}
-      >
-        <strong>Search: </strong>
-      </InputWithLable>
-      <button type="button" disabled={!searchTerm} onClick={handleSearchSubmit}>
-        Submit
-      </button>
-      <br />
+      <SearchForm
+        searchTerm={searchTerm}
+        onSearchInput={handleSearchInput}
+        onSearchSubmit={handleSearchSubmit}
+      />
+
       <hr />
 
       {stories.isError && <p>Something went wrong...</p>}

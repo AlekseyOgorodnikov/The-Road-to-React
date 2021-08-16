@@ -11,6 +11,8 @@ import styled from 'styled-components';
 
 // css styles
 import styles from './App.module.css';
+// import svg
+import { ReactComponent as Check } from './check.svg';
 
 // styled components
 const StyledContainer = styled.div`
@@ -281,7 +283,7 @@ const Item = ({ item, onRemoveItem }) => {
           onRemoveItem(item);
         }}
       >
-        Dissmis
+        <Check height="18px" width="18px" />
       </StyledButtonSmall>
     </StyledItem>
   );

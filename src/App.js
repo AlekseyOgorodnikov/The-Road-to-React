@@ -3,6 +3,7 @@ import axios from 'axios';
 
 import SearchForm from './SearchForm';
 import List from './List';
+import LastSearches from './LastSearches';
 
 const API_ENDPOINT = 'https://hn.algolia.com/api/v1/search?query=';
 
@@ -51,10 +52,29 @@ const storiesReducer = (state, action) => {
   }
 };
 
+const extractSearchTerm = (url) => url.replace(API_ENDPOINT, '');
+
+const getLastSearches = (urls) =>
+  urls.reduce((result, url, index) => {
+    const searchTerm = extractSearchTerm(url);
+    if (index === 0) {
+      return result.concat(searchTerm);
+    }
+    const previousSearchTerm = result[result.length - 1];
+    if (searchTerm === previousSearchTerm) {
+      return result;
+    } else {
+      return result.concat(searchTerm);
+    }
+  }, []);
+
+const getUrl = (searchTerm) => `${API_ENDPOINT}${searchTerm}`;
+
+//component
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState('search', 'React');
 
-  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
+  const [urls, setUrls] = React.useState([getUrl(searchTerm)]);
 
   const [stories, dispatchStories] = React.useReducer(storiesReducer, {
     data: [],
@@ -66,7 +86,8 @@ const App = () => {
     dispatchStories({ type: 'STORIES_FETCH_INIT' });
 
     try {
-      const result = await axios.get(url);
+      const lastUrl = urls[urls.length - 1];
+      const result = await axios.get(lastUrl);
 
       dispatchStories({
         type: 'STORIES_FETCH_SUCCESS',
@@ -75,7 +96,7 @@ const App = () => {
     } catch {
       dispatchStories({ type: 'STORIES_FETCH_FAILURE' });
     }
-  }, [url]);
+  }, [urls]);
 
   React.useEffect(() => {
     handleFetchStories();
@@ -93,10 +114,23 @@ const App = () => {
   };
 
   const handleSearchSubmit = (event) => {
-    setUrl(`${API_ENDPOINT}${searchTerm}`);
+    handleSearch(searchTerm);
 
     event.preventDefault();
   };
+
+  const handleLastSearches = (searchTerm) => {
+    setSearchTerm(searchTerm);
+
+    handleSearch(searchTerm);
+  };
+
+  const handleSearch = (searchTerm) => {
+    const url = getUrl(searchTerm);
+    setUrls(urls.concat(url));
+  };
+
+  const lastSearches = getLastSearches(urls);
 
   return (
     <div>
@@ -106,6 +140,11 @@ const App = () => {
         searchTerm={searchTerm}
         onSearchInput={handleSearchInput}
         onSearchSubmit={handleSearchSubmit}
+      />
+
+      <LastSearches
+        lastSearches={lastSearches}
+        onLastSearch={handleLastSearches}
       />
 
       <hr />
